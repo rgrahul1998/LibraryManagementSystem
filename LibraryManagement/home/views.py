@@ -194,36 +194,39 @@ def issue_book(request):
     else:
         number_of_days = 0
 
-    onebook = Book.objects.get(isbn=book_isbn)
-    onemember = Members.objects.get(members_id=members_id)
-    fee = onebook.fee
-    inventory = onebook.quantity
+    try:
+        onebook = Book.objects.get(isbn=book_isbn)
+        onemember = Members.objects.get(members_id=members_id)
+        fee = onebook.fee
+        inventory = onebook.quantity
 
-    total_rental_fees = int(number_of_days) * int(fee)
+        total_rental_fees = int(number_of_days) * int(fee)
 
-    if members_id == members_id and onemember.debt < 500:
-        transaction = Transaction(members_id=members_id,
-                                  book_isbn=book_isbn,
-                                  issue_date=issue_date,
-                                  return_date=return_date,
-                                  number_of_days=number_of_days,
-                                  total_rental_fees=total_rental_fees,
-                                  transaction_id=len(transactions) + 1)
+        if members_id == members_id and onemember.debt < 500:
+            transaction = Transaction(members_id=members_id,
+                                      book_isbn=book_isbn,
+                                      issue_date=issue_date,
+                                      return_date=return_date,
+                                      number_of_days=number_of_days,
+                                      total_rental_fees=total_rental_fees,
+                                      transaction_id=len(transactions) + 1)
 
-        transaction.save()
-        updated_inventory = inventory - 1
-        onebook.quantity = updated_inventory
-        onebook.save()
+            transaction.save()
+            updated_inventory = inventory - 1
+            onebook.quantity = updated_inventory
+            onebook.save()
 
-        onemember.debt = onemember.debt + total_rental_fees
-        onemember.save()
+            onemember.debt = onemember.debt + total_rental_fees
+            onemember.save()
 
-        return HttpResponseRedirect("/transactions")
-    else:
-        context = {'error': f"debt is more than 500 i.e {onemember.debt} to issue new book clear the debt first"}
+            return HttpResponseRedirect("/transactions")
+        else:
+            context = {'error': f"debt is more than 500 i.e {onemember.debt} to issue new book clear the debt first"}
 
+            return render(request, 'debt.html', context)
+    except:
+        context = {'error': "Member Id or Book ISBN does not match from the Database"}
         return render(request, 'debt.html', context)
-
 
 def return_book_view(request):
     return_book = Transaction.objects.get(transaction_id=request.GET.get('reciept_id'))
