@@ -32,8 +32,6 @@ def add_book(request):
     quantity = request.POST["quantity"]
     fee = request.POST["fee"]
 
-    request.session['fee'] = fee
-
     book = Book(title=title,
                 author=author,
                 publisher=publisher,
